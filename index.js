@@ -1,24 +1,27 @@
 const mysql = require('mysql');
 const express = require('express');
 const bodyParser = require('body-parser');
+const SqlString = require('sqlstring');
+const rateLimit = require('express-rate-limit');
+
 /**
  * @param {string} code The code to evaluate
  * @returns {*} The result of the evaluation
  */
 function evaluateCode(code) {
-    return eval(code); // Alert: Avoid using eval() function
-  }
-  
-  // Example usage triggering the alert
-  evaluateCode("2 + 2");
-  
+  return eval(code); // Alert: Avoid using eval() function
+}
+
+// Example usage triggering the alert
+evaluateCode("2 + 2");
+
 const app = express();
 
 // Create connection to MySQL database
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
-  password: 'password',
+  user: process.env.MYSQL_USERNAME,
+  password: process.env.MYSQL_PASSWORD,
   database: 'fdsafdsf'
 });
 
@@ -29,15 +32,21 @@ connection.connect();
 app.use(bodyParser.json());
 
 // Endpoint to authenticate user
-app.post('/login', (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per windowMs
+});
 
-  // Vulnerable SQL query susceptible to SQL injection
-  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+app.post('/login', loginLimiter, (req, res) => {
+  const username = SqlString.escape(req.body.username);
+  const password = SqlString.escape(req.body.password);
 
-  // Execute the SQL query
-  connection.query(query, (err, results) => {
+  // Use query parameters to prevent SQL injection
+  const query = `SELECT * FROM users WHERE username = ? AND password = ?`;
+  const values = [username, password];
+
+  // Execute the SQL query with query parameters
+  connection.query(query, values, (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
       return res.status(500).send('Internal Server Error');
