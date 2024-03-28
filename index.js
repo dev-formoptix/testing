@@ -51,6 +51,20 @@ app.post('/login', (req, res) => {
   });
 });
 
+// Middleware to limit expensive operations
+const rateLimiter = RateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per windowMs
+});
+
+// Apply rate limiter to operations endpoint
+app.use('/operations', rateLimiter);
+
+// Endpoint to perform expensive operations
+app.get('/operations', (req, res) => {
+    // Perform expensive operations here
+});
+
 // Start the server
 const port = 3000;
 app.listen(port, () => {
