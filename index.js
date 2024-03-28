@@ -2,6 +2,7 @@ const mysql = require('mysql');
 const express = require('express');
 const bodyParser = require('body-parser');
 const SqlString = require('sqlstring');
+const rateLimit = require('express-rate-limit');
 
 /**
  * @param {string} code The code to evaluate
@@ -31,7 +32,12 @@ connection.connect();
 app.use(bodyParser.json());
 
 // Endpoint to authenticate user
-app.post('/login', (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per windowMs
+});
+
+app.post('/login', loginLimiter, (req, res) => {
   const username = SqlString.escape(req.body.username);
   const password = SqlString.escape(req.body.password);
 
