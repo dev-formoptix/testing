@@ -42,11 +42,11 @@ app.post('/login', (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  // Vulnerable SQL query susceptible to SQL injection
-  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+  // GOOD: use query parameters to prevent SQL injection
+  const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
 
-  // Execute the SQL query
-  connection.query(query, (err, results) => {
+  // Execute the SQL query with query parameters
+  connection.query(query, [username, password], (err, results) => {
     if (err) {
       console.error('Error executing query:', err);
       return res.status(500).send('Internal Server Error');
