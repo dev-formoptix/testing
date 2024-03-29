@@ -32,8 +32,8 @@ app.use(bodyParser.json());
 
 // Apply rate limiting middleware to all requests
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requests per windowMs
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // max 100 requests per windowMs
 });
 
 app.use(limiter);
@@ -43,7 +43,7 @@ app.post('/login', (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    // Use query parameters to embed user input into the query string
+    // Use query parameters or prepared statements to embed user input into the query string
     const query = `SELECT * FROM users WHERE username = ? AND password = ?`;
     const values = [username, password];
 
