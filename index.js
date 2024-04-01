@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const express = require('express');
 const bodyParser = require('body-parser');
+const RateLimit = require('express-rate-limit');
 
 function evaluateCode(code) {
   return eval(code);
@@ -19,7 +20,12 @@ connection.connect();
 
 app.use(bodyParser.json());
 
-app.post('/login', (req, res) => {
+const limiter = RateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per windowMs
+});
+
+app.post('/login', limiter, (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
